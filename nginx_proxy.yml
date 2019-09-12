@@ -7,7 +7,7 @@
   remote_user: root
   roles:
     - node1
-- host: node2
+- hosts: node2
   remote_user: root
   roles:
     - node2

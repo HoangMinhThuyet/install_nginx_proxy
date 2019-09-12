@@ -1,0 +1,121 @@
+- name: install the 'Development tools' package group
+    yum:
+      name: "@Development tools"
+      state: present    
+  - name: Installing NGINX Dependencies
+    yum: 
+      name:
+        - gcc
+        - gcc-c++
+        - automake
+        - make
+        - autoconf
+        - libtool
+        - pcre
+        - pcre-devel
+        - libxml2
+        - libxml2-devel
+        - curl
+        - curl-devel
+        - httpd-devel
+        - wget
+        - git
+        - openssl-devel
+        - zlib-devel
+        - geoip-devel
+        - epel-release
+        - libuuid-devel
+        - libatomic
+        - libatomic-static
+        - libatomic_ops-devel
+      state: present
+  - name: install hiredis and crudini
+    command: yum install hiredis* crudini -y
+  - name: Copy  package
+    copy:
+      src: "{{ item }}"
+      dest: /root/
+      owner: root
+      group: root
+      mode: preserve
+    with_items:
+      - headers-more-nginx-module-0.33.tar.gz
+      - incubator-pagespeed-ngx-1.13.35.2-stable.tar.gz
+      - kyprizel-testcookie-nginx-module-3e0a32f.tar.gz
+      - lua-nginx-module-master.zip
+      - ModSecurity.tar.gz
+      - naxsi-master.zip
+      - nginx-1.15.12.tar.gz
+      - nginx-push-stream-module-master.zip
+      - nginx-selective-cache-purge-module-master.zip
+      - ngx_cache_purge-2.3.tar.gz
+      - ngx_devel_kit-master.zip
+      - openssl-1.0.2s.tar.gz     
+      - set-misc-nginx-module-master.zip 
+      - 1.13.35.2-x64.tar.gz
+  - name: unarchive file
+    unarchive:
+      src: /root/{{ item }}
+      dest: /root
+      remote_src: yes
+    with_items:
+      - headers-more-nginx-module-0.33.tar.gz
+      - incubator-pagespeed-ngx-1.13.35.2-stable.tar.gz
+      - kyprizel-testcookie-nginx-module-3e0a32f.tar.gz
+      - lua-nginx-module-master.zip
+      - ModSecurity.tar.gz
+      - naxsi-master.zip
+      - nginx-1.15.12.tar.gz
+      - nginx-push-stream-module-master.zip
+      - nginx-selective-cache-purge-module-master.zip
+      - ngx_cache_purge-2.3.tar.gz
+      - ngx_devel_kit-master.zip
+      - openssl-1.0.2s.tar.gz     
+      - set-misc-nginx-module-master.zip
+  - name: Install ModSecurity
+    shell: sed -i '/AC_PROG_CC/a\AM_PROG_CC_C_O' configure.ac ; sed -i '1 i\AUTOMAKE_OPTIONS = subdir-objects' Makefile.am
+    args:
+      chdir: /root/ModSecurity
+  - name: autogen ModSecurity
+    shell: chmod +x  autogen.sh && ./autogen.sh 
+    args:
+      chdir: /root/ModSecurity
+  - name: continue install ModSecurity
+    shell: ./configure --enable-standalone-module --disable-mlogc ;  make && make install
+    args:
+      chdir: /root/ModSecurity     
+  - name: dowload page_speed
+    shell: cd /root/incubator-pagespeed-ngx-1.13.35.2-stable ; mv /root/1.13.35.2-x64.tar.gz /root/incubator-pagespeed-ngx-1.13.35.2-stable  ; tar -xzvf 1.13.35.2-x64.tar.gz && rm -rf 1.13.35.2-x64.tar.gz
+  - name: Them bien moi truong
+    shell: export LUAJIT_LIB=/usr/local/lib/ ; export LUAJIT_INC=/usr/local/include/luajit-2.1 ; export LDFLAGS="-ljemalloc"
+  - name: Config nginx proxy
+    shell: cd nginx-1.15.12 ; chmod +x configure
+  - name: continue Config nginx
+    command: ./configure --user=nginx --group=nginx --prefix=/etc/nginx --sbin-path=/usr/sbin/nginx --conf-path=/etc/nginx/nginx.conf --pid-path=/var/run/nginx.pid --lock-path=/var/run/nginx.lock --with-http_ssl_module --with-http_secure_link_module --with-http_random_index_module --with-file-aio --with-http_v2_module --with-http_random_index_module --with-ld-opt='-L/usr/local/lib/' --with-cc-opt='-I/usr/include/hiredis/ ' --with-openssl=/root/openssl-1.0.2s --with-openssl-opt="no-shared enable-ec_nistp_64_gcc_128 no-krb5 enable-tlsext" --with-cc-opt='-I../openssl-1.0.2s/include -DTCP_FASTOPEN=23' --with-ld-opt='-L../openssl-1.0.2s' --with-http_realip_module --with-pcre-jit --with-http_addition_module --with-http_sub_module --with-libatomic --with-threads --with-http_gzip_static_module --with-stream --with-mail --with-mail_ssl_module --add-module=/root/headers-more-nginx-module-0.33 --add-module=/root/incubator-pagespeed-ngx-1.13.35.2-stable --add-module=/root/kyprizel-testcookie-nginx-module-3e0a32f --add-module=/root/naxsi-master/naxsi_src --add-module=/root/ngx_cache_purge-2.3 --add-module=/root/ngx_devel_kit-master --add-module=/root/set-misc-nginx-module-master --add-module=/root/nginx-selective-cache-purge-module-master --add-module=/root/ModSecurity/nginx/modsecurity --add-module=/root/nginx-push-stream-module-master
+    args:
+      chdir: /root/nginx-1.15.12
+  - name: Install redis_nginx_adapter
+    shell: cd /root/ ; git clone https://github.com/wandenberg/redis_nginx_adapter.git ; cd redis_nginx_adapter/ ; ./configure --with-nginx-dir=../nginx-1.15.12 --with-hiredis-dir=/opt --with-openssl-dir=/usr/local/opt/openssl ; make && make install
+  - name: continue install nginx
+    shell: cd /root/nginx-1.15.12 ; make && make install
+  - name: add user nginx 
+    user: 
+      name: nginx 
+      createhome: no 
+      shell: /bin/bash system=yes
+  - name: Create file client_temp
+    command:  mkdir -p /var/cache/nginx/client_temp/ &&  chown nginx. /var/cache/nginx/client_temp/
+  - name: create file start service nginx
+    command: "{{ item }}"
+    with_items:
+      - crudini --set /lib/systemd/system/nginx.service Unit Description "The NGINX HTTP and reverse proxy server"
+      - crudini --set /lib/systemd/system/nginx.service Unit After "syslog.target network.target remote-fs.target nss-lookup.target"
+      - crudini --set /lib/systemd/system/nginx.service Service Type forking
+      - crudini --set /lib/systemd/system/nginx.service Service PIDFile /run/nginx.pid
+      - crudini --set /lib/systemd/system/nginx.service Service ExecStartPre "/usr/sbin/nginx -t"
+      - crudini --set /lib/systemd/system/nginx.service Service ExecStart /usr/sbin/nginx
+      - crudini --set /lib/systemd/system/nginx.service Service ExecReload /bin/kill -s HUP $MAINPID
+      - crudini --set /lib/systemd/system/nginx.service Service ExecStop "/bin/kill -s QUIT $MAINPID"
+      - crudini --set /lib/systemd/system/nginx.service Service PrivateTmp true
+      - crudini --set /lib/systemd/system/nginx.service Install WantedBy multi-user.target
+      - chmod 755 /lib/systemd/system/nginx.service

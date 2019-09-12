@@ -1,2 +1,1 @@
-# install_nginx_proxy
-Deploy by ansible
+# nginx_ansible

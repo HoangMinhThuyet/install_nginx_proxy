@@ -10,7 +10,7 @@ server {
     include /etc/nginx/com-protection.conf;
     include /etc/nginx/proxy-not-cache.conf;
     server_name root-demo.ihcm.vn demo00.ihcm.vn demo01.ihcm.vn demo02.ihcm.vn demo03.ihcm.vn demo04.ihcm.vn demo05.ihcm.vn demo06.ihcm.vn demo07.ihcm.vn demo08.ihcm.vn demo09.ihcm.vn demo10.ihcm.vn demo11.ihcm.vn demo12.ihcm.vn demo13.ihcm.vn demo14.ihcm.vn demo15.ihcm.vn demo16.ihcm.vn demo17.ihcm.vn demo18.ihcm.vn demo19.ihcm.vn demo20.ihcm.vn demo21.ihcm.vn demo22.ihcm.vn demo23.ihcm.vn demo24.ihcm.vn demo25.ihcm.vn demo26.ihcm.vn demo27.ihcm.vn demo28.ihcm.vn demo29.ihcm.vn demofree00.ihcm.vn demofree01.ihcm.vn demofree02.ihcm.vn demofree03.ihcm.vn demofree04.ihcm.vn demofree05.ihcm.vn demofree06.ihcm.vn demofree07.ihcm.vn demofree08.ihcm.vn demofree09.ihcm.vn demostd00.ihcm.vn demostd01.ihcm.vn demostd02.ihcm.vn demostd03.ihcm.vn demostd04.ihcm.vn demostd05.ihcm.vn demostd06.ihcm.vn demostd07.ihcm.vn demostd08.ihcm.vn demostd09.ihcm.vn demostd10.ihcm.vn demostd11.ihcm.vn demostd12.ihcm.vn demostd13.ihcm.vn demostd14.ihcm.vn demostd15.ihcm.vn demostd16.ihcm.vn demostd17.ihcm.vn demostd18.ihcm.vn demostd19.ihcm.vn demoent00.ihcm.vn demoent01.ihcm.vn demoent02.ihcm.vn demoent03.ihcm.vn demoent04.ihcm.vn demoent05.ihcm.vn demoent06.ihcm.vn demoent07.ihcm.vn demoent08.ihcm.vn demoent09.ihcm.vn demoent10.ihcm.vn demoent11.ihcm.vn demoent12.ihcm.vn demoent13.ihcm.vn demoent14.ihcm.vn demoent15.ihcm.vn demoent16.ihcm.vn demoent17.ihcm.vn demoent18.ihcm.vn demoent19.ihcm.vn;
-    listen 172.20.20.207:443 ssl spdy http2;
+    listen 172.20.20.227:443 ssl spdy http2;
     if ($host !~* .(ihcm.vn)$){
         return 444;
     }

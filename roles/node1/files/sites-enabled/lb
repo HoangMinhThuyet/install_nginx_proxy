@@ -1,6 +1,6 @@
 server {
     server_tokens off;
-    listen 172.20.20.207 backlog=32768;
+    listen 172.20.20.227 backlog=32768;
     server_name  *.ihcm.vn;
     if ($host !~* .(ihcm.vn)$){
         return 444;

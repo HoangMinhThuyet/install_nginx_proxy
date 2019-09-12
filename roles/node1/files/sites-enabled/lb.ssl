@@ -13,7 +13,7 @@ upstream http_l1cache {
 
 server {
     server_name id.ihcm.vn;
-    listen 172.20.20.207:443 ssl spdy http2 reuseport fastopen=256 backlog=32768 rcvbuf=4194304 sndbuf=16777216;
+    listen 172.20.20.227:443 ssl http2 reuseport fastopen=256 backlog=32768 rcvbuf=4194304 sndbuf=16777216;
 
 
     include /etc/nginx/app.ssl.conf;
@@ -99,7 +99,7 @@ server {
     limit_conn persessionall 100;
 
     server_name *.ihcm.vn reuseport fastopen=256 backlog=32768 rcvbuf=4194304 sndbuf=16777216;
-    listen 172.20.20.207:443 ssl spdy http2;
+    listen 172.20.20.227:443 ssl http2;
 
     location = /aes.js {
         testcookie off;

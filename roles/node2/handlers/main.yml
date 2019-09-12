@@ -1,0 +1,18 @@
+# start add restart waf
+- name: restart waf
+  service:
+    name=waf
+    state=restarted
+- name: start waf
+  service:
+    name=waf
+    state=started
+# start add restart opt
+- name: start opt
+  service:
+    name=opt
+    state=started
+- name: restart opt
+  service:
+    name=opt
+    state=restarted

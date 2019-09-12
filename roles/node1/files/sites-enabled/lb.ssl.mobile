@@ -10,7 +10,7 @@ server {
     include /etc/nginx/com-protection.conf;
     include /etc/nginx/proxy-not-cache.conf;
     server_name mobile.ihcm.vn mobile-free.ihcm.vn mobile-std.ihcm.vn mobile-ent.ihcm.vn;
-    listen 172.20.20.207:443 ssl spdy http2;
+    listen 172.20.20.227:443 ssl spdy http2;
     if ($host !~* .(ihcm.vn)$){
         return 444;
     }

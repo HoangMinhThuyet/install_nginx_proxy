@@ -11,7 +11,7 @@ upstream http_optimizer_id {
 server {
   ModSecurityConfig modsecurity.conf;
   server_name id.ihcm.vn;
-  listen 172.20.20.208:81 backlog=65535;
+  listen 172.20.20.231:81 backlog=65535;
   root /var/www/html;
   include /etc/nginx/proxy-not-cache.conf;
   ModSecurityEnabled on;
@@ -27,7 +27,7 @@ server {
 server {
   ModSecurityConfig modsecurity.conf;
   server_name *.ihcm.vn;
-  listen 172.20.20.208:80 backlog=65535;
+  listen 172.20.20.231:80 backlog=65535;
   root /var/www/html;
   include /etc/nginx/proxy-not-cache.conf;
   ModSecurityEnabled on;

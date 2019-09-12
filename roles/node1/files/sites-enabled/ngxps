@@ -1,6 +1,6 @@
 server {
     server_name push.ihcm.vn;
-    listen 172.20.20.207:443 ssl spdy http2;
+    listen 172.20.20.227:443 ssl spdy http2;
     include /etc/nginx/app.ssl.conf;
     access_log /var/log/nginx/ngxps-ev-access.log main;
     error_log  /var/log/nginx/ngxps-ev-error.log;
@@ -16,7 +16,7 @@ server {
 }
 
 server {
-    listen 172.20.20.207:80;
+    listen 172.20.20.227:80;
     server_name  push.ihcm.vn;
     access_log /var/log/nginx/ngxps-pub-access.log;
     error_log /var/log/nginx/ngxps-pub-error.log;

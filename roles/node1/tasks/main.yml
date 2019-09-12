@@ -1,7 +1,10 @@
 - name: copy file
   copy:
     src: "{{ item }}"
-    dest: /root/etc/nginx
+    dest: /etc/nginx/
+    owner: root
+    group: root
+    mode: preserve
   with_items:
     - sites-available
     - sites-enabled
@@ -18,6 +21,7 @@
     - l1cache-proxy-pagespeed.conf
     - l1cache-proxy.conf
     - l1cache.conf
+    - lb-proxy.conf
     - lb.conf
     - mime.types
     - ngxps-ev.conf
@@ -33,7 +37,7 @@
     - crudini --set /lib/systemd/system/lb.service Unit Description "The service start LB"
     - crudini --set /lib/systemd/system/lb.service Unit After "syslog.target network.target remote-fs.target nss-lookup.target"
     - crudini --set /lib/systemd/system/lb.service Service Type forking
-    - crudini --set /lib/systemd/system/lb.service Service PIDFile "#/var/run/lb.pid"
+    - crudini --set /lib/systemd/system/lb.service Service "#PIDFile /var/run/lb.pid"
     - crudini --set /lib/systemd/system/lb.service Service ExecStartPre "/usr/sbin/lb -t -c /etc/nginx/lb.conf"
     - crudini --set /lib/systemd/system/lb.service Service ExecStart "/usr/sbin/lb -c /etc/nginx/lb.conf"
     - crudini --set /lib/systemd/system/lb.service Service ExecReload /bin/kill -s HUP $MAINPID

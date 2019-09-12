@@ -1,7 +1,10 @@
 - name: copy file
   copy:
     src: "{{ item }}"
-    dest: /root/etc/nginx
+    dest: /etc/nginx/
+    owner: root
+    group: root
+    mode: preserve
   with_items:
     - sites-available
     - sites-enabled

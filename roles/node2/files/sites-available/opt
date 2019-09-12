@@ -1,0 +1,114 @@
+upstream http_backend {
+    server 172.16.20.15:22091;
+    keepalive 128;
+}
+
+upstream http_backend_id {
+    server 172.16.20.15:22090;
+    keepalive 128;
+}
+server {
+   server_name id.ihcm.vn;
+   listen unix:/tmp/opt-id.sock backlog=65535;
+   root /var/www/html;
+
+   access_log /var/log/nginx/opt-access-id.log main if=$logip;
+   error_log  /var/log/nginx/opt-error-id.log;
+
+   include /etc/nginx/pagespeed-id.conf;
+
+   # deny running scripts inside writable directories
+   location ~* /(images|cache|media|logs|tmp)/.*\.(php|pl|py|jsp|asp|sh|cgi)$ {
+     return 403;
+     error_page 403 /403_error.html;
+   }
+
+   #Tai nguyen da duoc toi uu
+   location ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{20}\.[^.]+" {
+   }
+   location ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{10}\.[^.]+" {
+   }
+
+   error_page 502 /maintenance.html;
+
+   location /maintenance.html {
+       root /var/www/html;
+   }
+
+   location / {
+        #File ton tai se duoc tra ve luon, con lai se duoc chuyen xuong backend
+        try_files $uri @be;
+        etag on;
+   }
+
+   location /ras {
+        #File ton tai se duoc tra ve luon, con lai se duoc chuyen xuong backend
+        try_files $uri @be_id;
+        etag on;
+   }
+
+   location @be_id {
+        pagespeed on;
+        proxy_set_header Host id.ihcm.vn;
+        proxy_buffering off;
+        proxy_request_buffering off;
+        proxy_pass http://http_backend_id;
+        proxy_http_version 1.1;
+        proxy_hide_header X-Powered-By;
+   access_log /var/log/nginx/opt-access-id.log main if=$logip;
+   error_log  /var/log/nginx/opt-error-id.log;
+   }
+
+   location ~ "^/ngx_pagespeed_beacon$" {
+   }
+}
+
+
+server {
+   server_name any.ihcm.vn;
+   listen unix:/tmp/opt.sock backlog=65535;
+   root /var/www/html;
+
+   access_log /var/log/nginx/opt-access.log main if=$logip;
+   error_log  /var/log/nginx/opt-error.log;
+
+   include /etc/nginx/pagespeed.conf;
+
+   #deny running scripts inside writable directories
+   location ~* /(images|cache|media|logs|tmp)/.*\.(php|pl|py|jsp|asp|sh|cgi)$ {
+   return 403;
+   error_page 403 /403_error.html;
+   }
+
+   #Tai nguyen da duoc toi uu
+   location ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{20}\.[^.]+" {
+   }
+   location ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{10}\.[^.]+" {
+   }
+  
+   error_page 502 /maintenance.html;
+
+   location /maintenance.html {
+       root /var/www/html;
+   }
+
+   error_page 404 /ihcm;
+
+   location / {    
+	#File ton tai se duoc tra ve luon, con lai se duoc chuyen xuong backend
+        try_files $uri @be;
+        etag on;
+   }
+   location @be {
+        proxy_set_header Host $http_x_host;
+        proxy_buffering off;
+        proxy_request_buffering off;
+        proxy_pass http://http_backend;
+        proxy_http_version 1.1;
+        proxy_hide_header X-Powered-By;
+   }
+
+   location ~ "^/ngx_pagespeed_beacon$" {
+   }
+}
+

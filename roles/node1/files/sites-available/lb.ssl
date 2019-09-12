@@ -1,0 +1,163 @@
+upstream http_l1cache {
+#    server unix:/tmp/l1cache.sock;
+    server 172.16.20.61:80;
+    keepalive 256;
+}
+
+#upstream http_waf {
+#    server 172.16.20.61:80;
+#    keepalive 128;
+#}
+
+#include /etc/nginx/sites-enabled/ngxps;
+
+server {
+    server_name id.ihcm.vn;
+    listen 172.20.20.207:443 ssl spdy http2 reuseport fastopen=256 backlog=32768 rcvbuf=4194304 sndbuf=16777216;
+
+
+    include /etc/nginx/app.ssl.conf;
+    include /etc/nginx/ddos-protection.conf;
+    include /etc/nginx/com-protection.conf;
+    include /etc/nginx/proxy-not-cache.conf;
+
+    #none session chi co the co toi da 2000 connection
+    limit_conn nonesessionid 2000;
+    #none session chi co the co toi da 5 connection per IP
+    limit_conn nonesessionperipid 5;
+    #Moi session chi co the co toi da 50 connection
+    limit_conn persessionid 50;
+
+    location = /aes.js {
+        testcookie off;
+        gzip  on;
+        gzip_types      text/plain;
+        root /var/www/public_html;
+    }
+
+    location ~ /sync.hyper {
+        deny all;
+    }
+
+    location / {
+      error_page 404 = @nocache;
+      error_page 410 = @nocache;
+      if ($bypass_cache = 1) {
+          return 410;
+      }
+      rewrite / /ras;
+    }
+
+    location ~ /ras {
+      error_page 404 = @nocache;
+      error_page 410 = @nocache;
+
+      if ($bypass_cache = 1) {
+          return 410;
+      }
+      include /etc/nginx/lb-proxy.conf;
+      proxy_pass http://http_l1cache;
+    }
+
+    location @nocache {
+      limit_req zone=reqdynidperip burst=2400 nodelay;
+      limit_req zone=reqdynidperref burst=2400 nodelay;
+
+      limit_req zone=reqdynidnonesession burst=2400 nodelay;
+      limit_req zone=reqdynidnonesessionperip burst=1200 nodelay;
+
+      limit_req zone=reqdynidpersession burst=600 nodelay;
+
+      limit_req zone=reqdynamicperserver burst=6000 nodelay;
+
+
+      include /etc/nginx/lb-proxy.conf;
+      proxy_pass http://http_l1cache;
+    }
+    access_log /var/log/nginx/id-access.log;
+    error_log /var/log/nginx/id-error.log;
+}
+
+server {
+    root /var/www/html;
+    include /etc/nginx/app.ssl.conf;
+    include /etc/nginx/ddos-protection.conf;
+    include /etc/nginx/com-protection.conf;
+    include /etc/nginx/proxy-not-cache.conf;
+    if ($host !~* .(ihcm.vn)$){
+        return 444;
+    }
+    #none session chi co the co toi da 2000 connection
+    limit_conn nonesessionapp 2000;
+    #none session chi co the co toi da 30 connection cho moi mot domain (server/tenant)
+    limit_conn nonesessionperserver 30;
+    #none session chi co the co toi da 30 connection per IP
+    limit_conn nonesessionperip 30;
+    #none session chi co the co toi da 20 connection per IP per server
+    limit_conn nonesessionperserverip 20;
+    #Moi session chi co the co toi da 100 connection
+    limit_conn persessionall 100;
+
+    server_name *.ihcm.vn reuseport fastopen=256 backlog=32768 rcvbuf=4194304 sndbuf=16777216;
+    listen 172.20.20.207:443 ssl spdy http2;
+
+    location = /aes.js {
+        testcookie off;
+        gzip  on;
+        gzip_types      text/plain;
+        root /var/www/public_html;
+    }
+    #access_log /var/log/nginx/app.ssl-access.log main buffer=64k;
+    access_log /var/log/nginx/app.ssl-access.log main;
+    error_log  /var/log/nginx/app.ssl-error.log;
+
+    if ($host = "icrm.ihcm.vn") {
+        return 444;        
+    }
+
+    location ~ /\. { access_log off; log_not_found off; deny all; }
+
+    if ($trunc_arg = 1)
+    {
+      set $args "";
+    }
+    location ~ /\. { access_log off; log_not_found off; deny all; }
+
+    location /test.html {
+        root /var/www/public_html;
+        add_header 'Access-Control-Allow-Origin' 'https://id.ihcm.vn';
+    }
+
+    location ~ /services {
+        deny all;
+    }
+
+    location / {
+      error_page 410 = @nocache;
+      if ($bypass_cache = 1) {
+          return 410;
+      }
+      include /etc/nginx/lb-proxy.conf;
+      proxy_pass http://http_l1cache;
+    }
+
+    location @nocache {
+      #Moi session chi co the co toi da 60 connection
+      limit_conn persessionnocache 60;
+
+      limit_req zone=reqdynamicperip burst=2400 nodelay;
+      limit_req zone=reqdynamicperref burst=2400 nodelay;
+
+      limit_req zone=reqdynamicnonesession burst=2400 nodelay;
+      limit_req zone=reqdynamicnonesessionperserver burst=1200 nodelay;
+      limit_req zone=reqdynamicnonesessionperserverip burst=600 nodelay;
+      limit_req zone=reqdynamicnonesessionperip burst=1200 nodelay;
+
+      limit_req zone=reqdynamicpersession burst=600 nodelay;
+
+      limit_req zone=reqdynamicperserver burst=6000 nodelay;
+
+      include /etc/nginx/lb-proxy.conf;
+      proxy_pass http://http_l1cache;
+    }
+}

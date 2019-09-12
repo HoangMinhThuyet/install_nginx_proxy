@@ -1,0 +1,42 @@
+upstream http_optimizer {
+    server unix:/tmp/opt.sock;
+    keepalive 128;
+}
+
+upstream http_optimizer_id {
+    server unix:/tmp/opt-id.sock;
+    keepalive 128;
+}
+
+server {
+  ModSecurityConfig modsecurity.conf;
+  server_name id.ihcm.vn;
+  listen 172.20.20.208:81 backlog=65535;
+  root /var/www/html;
+  include /etc/nginx/proxy-not-cache.conf;
+  ModSecurityEnabled on;
+
+
+  access_log /var/log/nginx/waf-access-id.log main if=$logip;
+  error_log  /var/log/nginx/waf-error-id.log;
+  location / {
+    include /etc/nginx/waf-proxy-id.conf;
+  }
+}
+
+server {
+  ModSecurityConfig modsecurity.conf;
+  server_name *.ihcm.vn;
+  listen 172.20.20.208:80 backlog=65535;
+  root /var/www/html;
+  include /etc/nginx/proxy-not-cache.conf;
+  ModSecurityEnabled on;
+
+
+  access_log /var/log/nginx/waf-access.log main if=$logip;
+  error_log  /var/log/nginx/waf-error.log;
+  location / {
+    include /etc/nginx/waf-proxy.conf;
+  }
+}
+

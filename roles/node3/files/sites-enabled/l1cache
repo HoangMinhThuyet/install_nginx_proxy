@@ -1,0 +1,171 @@
+upstream http_waf {
+    server 172.20.20.208:80;
+#server 172.16.20.15:22091; 
+   keepalive 256;
+}
+
+
+upstream http_waf_id {
+#server 172.16.20.15:22090;
+    server 172.20.20.208:81;
+    keepalive 256;
+}
+
+
+server {
+    root /var/www/html;
+    include "/etc/nginx/l1cache-proxy-pagespeed.conf";
+    include "/etc/nginx/proxy-not-cache.conf";
+    server_name id.ihcm.vn;
+    listen unix:/tmp/l1cache.sock;
+#    testcookie off;
+#    if (-f /etc/ddos){
+#        testcookie on;
+#    }
+    #access_log /var/log/nginx/l1cache-access-id.log main buffer=64k if=$logip;
+    access_log /var/log/nginx/l1cache-access-id.log;
+    error_log  /var/log/nginx/l1cache-error-id.log;
+    location ~ /\. { access_log off; log_not_found off; deny all; }
+
+    if ($trunc_arg = 1)
+    {
+      set $args "";
+      set $bypass_cache 0;
+    }
+    set $keycache $host$uri$args;
+
+
+#Tai nguyen js/css da duoc toi uu se duoc luu trong cache 24h
+   location ~ "\.pagespeed\.cf\.[^.]{20}\.[^.]+" {
+        include "/etc/nginx/l1cache-proxy.conf";
+        proxy_hide_header X-Powered-By;
+        proxy_cache_valid 200 301 302 303 24h;
+        proxy_pass http://http_waf_id;
+   }
+   location ~ "\.pagespeed\.cf\.[^.]{10}\.[^.]+" {
+        include "/etc/nginx/l1cache-proxy.conf";
+        proxy_hide_header X-Powered-By;
+        proxy_cache_valid 200 301 302 303 24h;
+        proxy_pass http://http_waf_id;
+   }
+   location ~ "\.pagespeed\.jc\.[^.]{20}\.[^.]+" {
+        include "/etc/nginx/l1cache-proxy.conf";
+        proxy_hide_header X-Powered-By;
+        proxy_cache_valid 200 301 302 303 24h;
+        proxy_pass http://http_waf_id;
+   }
+   location ~ "\.pagespeed\.jc\.[^.]{10}\.[^.]+" {
+        include "/etc/nginx/l1cache-proxy.conf";
+        proxy_hide_header X-Powered-By;
+        proxy_cache_valid 200 301 302 303 24h;
+        proxy_pass http://http_waf_id;
+   }
+
+
+#Tai nguyen da duoc toi uu (Anh) se duoc luu trong cache 5 phut
+   location ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{20}\.[^.]+" {
+        include "/etc/nginx/l1cache-proxy.conf";
+        proxy_hide_header X-Powered-By;
+        proxy_cache_valid 200 301 302 303 5m;
+        proxy_pass http://http_waf_id;
+   }
+   location ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{10}\.[^.]+" {
+        include "/etc/nginx/l1cache-proxy.conf";
+        proxy_hide_header X-Powered-By;
+        proxy_cache_valid 200 301 302 303 5m;
+        proxy_pass http://http_waf_id;
+   }
+
+
+
+   location / {
+        proxy_hide_header X-Powered-By;
+        error_page 410 = @nocache;
+        error_page 411 = @microcache;
+        if ($micro_cache = 1) {
+            return 411;
+        }
+        if ($bypass_cache = 1) {
+            return 410;
+        }
+        proxy_cache_valid 200 301 302 303 30m;
+        include "/etc/nginx/l1cache-proxy.conf";
+        proxy_pass http://http_waf_id;
+   }
+
+   location @nocache {
+        proxy_hide_header X-Powered-By;
+        proxy_cache_bypass 1;
+        include "/etc/nginx/l1cache-proxy-nocache.conf";
+        proxy_pass http://http_waf_id;
+   }
+   location @microcache {
+        #Cac file dinh kem duoc cache cho tung session trong 60s
+        proxy_cache_valid 200 5m;
+        include "/etc/nginx/l1cache-proxy-microcache.conf";
+        proxy_pass http://http_waf_id;
+   }
+}
+
+
+server {
+    root /var/www/html;
+    include "/etc/nginx/l1cache-proxy-pagespeed.conf";
+    include "/etc/nginx/proxy-not-cache.conf";
+    server_name *.ihcm.vn;
+    listen unix:/tmp/l1cache.sock backlog=32768 rcvbuf=4194304 sndbuf=16777216;
+    listen 127.0.0.1:8080 reuseport fastopen=256 backlog=32768 rcvbuf=4194304 sndbuf=16777216;
+#    testcookie off;
+#    if (-f /etc/ddos){
+#        testcookie on;
+#    }
+    #access_log /var/log/nginx/l1cache-access.log main buffer=64k if=$logip;
+    access_log /var/log/nginx/l1cache-access.log;
+    error_log  /var/log/nginx/l1cache-error.log;
+    location ~ /\. { access_log off; log_not_found off; deny all; }
+
+   if ($trunc_arg = 1)
+   {
+     set $args "";
+     set $bypass_cache 0;
+   }
+   set $keycache app$uri$args;
+
+#Tai nguyen da duoc toi uu se duoc luu trong cache 30 phut
+   location ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{20}\.[^.]+" {
+        include "/etc/nginx/l1cache-proxy.conf";
+        proxy_hide_header X-Powered-By;
+        proxy_cache_valid 200 301 302 30m;
+        proxy_pass http://http_waf;
+   }
+
+
+   location / {
+        proxy_hide_header X-Powered-By;
+        error_page 410 = @nocache;
+        error_page 411 = @microcache;
+        if ($micro_cache = 1) {
+            return 411;
+        }
+        if ($bypass_cache = 1) {
+            return 410;
+        }
+        proxy_cache_valid 200 301 302 303 30m;
+        include "/etc/nginx/l1cache-proxy.conf";
+        proxy_pass http://http_waf;
+   }
+   location @nocache {
+        proxy_hide_header X-Powered-By;
+        proxy_cache_bypass 1;
+        include "/etc/nginx/l1cache-proxy-nocache.conf";
+        proxy_pass http://http_waf;
+   }
+   location @microcache {
+        #Cac file dinh kem duoc cache cho tung session trong 60s
+        proxy_cache_valid 200 5m;
+        include "/etc/nginx/l1cache-proxy-microcache.conf";
+        proxy_pass http://http_waf;
+   }
+}
+
+

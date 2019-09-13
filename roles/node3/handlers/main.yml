@@ -1,0 +1,36 @@
+# start add restart lb
+- name: restart lb
+  service:
+    name=lb
+    state=restarted
+- name: start lb
+  service:
+    name=lb
+    state=started
+# start add restart l1cache
+- name: start l1cache
+  service:
+    name=l1cache
+    state=started
+- name: restart l1cache
+  service:
+    name=l1cache
+    state=restarted
+# start add restart waf
+- name: restart waf
+  service:
+    name=waf
+    state=restarted
+- name: start waf
+  service:
+    name=waf
+    state=started
+# start add restart opt
+- name: start opt
+  service:
+    name=opt
+    state=started
+- name: restart opt
+  service:
+    name=opt
+    state=restarted

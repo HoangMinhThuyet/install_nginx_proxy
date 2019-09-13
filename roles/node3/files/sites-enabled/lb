@@ -1,0 +1,18 @@
+server {
+    server_tokens off;
+    listen 172.20.20.227 backlog=32768;
+    server_name  *.ihcm.vn;
+    if ($host !~* .(ihcm.vn)$){
+        return 444;
+    }
+    root /var/www/html;
+    access_log /var/log/nginx/lb.access.log;
+    error_log /var/log/nginx/lb.error.log;
+
+    #rewrite ^ https://$host$request_uri permanent;
+    return 301 https://$host$request_uri;
+
+    include /etc/nginx/ddos-protection.conf;
+    include /etc/nginx/com-protection.conf;
+    include /etc/nginx/tcp-global-protection.conf;
+}

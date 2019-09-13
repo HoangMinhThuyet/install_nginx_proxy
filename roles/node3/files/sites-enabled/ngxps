@@ -1,0 +1,25 @@
+server {
+    server_name push.ihcm.vn;
+    listen 172.20.20.227:443 ssl spdy http2;
+    include /etc/nginx/app.ssl.conf;
+    access_log /var/log/nginx/ngxps-ev-access.log main;
+    error_log  /var/log/nginx/ngxps-ev-error.log;
+
+    # Timeout for keep-alive connections. Server will close connections after this time.
+    keepalive_timeout  1800 1800;
+    # Try not to keep conns around too long
+    lingering_time 1800s;
+    lingering_timeout 1800s;
+
+    #push-stream subscriber
+    include /etc/nginx/ngxps-ev.conf;
+}
+
+server {
+    listen 172.20.20.227:80;
+    server_name  push.ihcm.vn;
+    access_log /var/log/nginx/ngxps-pub-access.log;
+    error_log /var/log/nginx/ngxps-pub-error.log;
+    # Push Stream Publish
+    include /etc/nginx/ngxps-pub.conf;
+}

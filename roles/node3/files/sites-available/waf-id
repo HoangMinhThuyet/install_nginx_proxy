@@ -1,0 +1,25 @@
+upstream http_optimizer {
+    server unix:/tmp/opt.sock;
+    keepalive 128;
+}
+
+
+server {
+  ModSecurityConfig modsecurity.conf;
+  server_name id.ihcm.vn;
+  listen 172.16.20.61:80;
+  root /var/www/html;
+  include /etc/nginx/proxy-not-cache.conf;
+  ModSecurityEnabled on;
+
+
+  access_log /var/log/nginx/waf-id-access.log main if=$logip;
+  error_log  /var/log/nginx/waf-id-error.log;
+  location / {
+    include /etc/nginx/waf-proxy-id.conf;
+  }
+  #location /services/v1.0 {
+  #  deny all;
+  #}	
+}
+

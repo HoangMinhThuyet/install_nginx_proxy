@@ -1,0 +1,70 @@
+upstream http_root {
+    server 172.16.20.15:22090;
+    keepalive 128;
+}
+
+server {
+    root /var/www/html;
+    include /etc/nginx/app.ssl.conf;
+    include /etc/nginx/ddos-protection.conf;
+    include /etc/nginx/com-protection.conf;
+    include /etc/nginx/proxy-not-cache.conf;
+    server_name root.ihcm.vn;
+    listen 172.20.20.227:443 ssl spdy http2;
+    if ($host !~* .(ihcm.vn)$){
+        return 444;
+    }
+
+    allow 172.20.20.0/24;
+    allow 172.20.50.0/24;
+    allow 27.72.100.116/32;
+    deny all; 
+
+    location = /aes.js {
+        gzip  on;
+        gzip_types      text/plain;
+        root /var/www/public_html;
+    }
+    access_log /var/log/nginx/app.root-access.log main;
+    error_log  /var/log/nginx/app.root-error.log;
+
+    location ~ /\. { access_log off; log_not_found off; deny all; }
+
+    if ($trunc_arg = 1)
+    {
+      set $args "";
+    }
+
+    location ~ /services {
+        deny all;
+    }
+
+    location = / {
+        rewrite / /ihcm;
+    }
+
+    location /ihcm {
+      error_page 410 = @nocache;
+      if ($bypass_cache = 1) {
+          return 410;
+      }
+      include /etc/nginx/lb-proxy.conf;
+      proxy_pass http://http_root;
+    }
+
+    location @nocache {
+      limit_req zone=reqdynamicperip burst=1500 nodelay;
+      limit_req zone=reqdynamicperref burst=1500 nodelay;
+
+      limit_req zone=reqdynamicnonesession burst=2400 nodelay;
+      limit_req zone=reqdynamicnonesessionperserver burst=1200 nodelay;
+      limit_req zone=reqdynamicnonesessionperserverip burst=600 nodelay;
+
+      limit_req zone=reqdynamicnonesessionperip burst=1200 nodelay;
+      limit_req zone=reqdynamicperserver burst=6000 nodelay;
+      limit_req zone=reqdynamicpersession burst=1200 nodelay;
+
+      include /etc/nginx/lb-proxy.conf;
+      proxy_pass http://http_root;
+    }
+}

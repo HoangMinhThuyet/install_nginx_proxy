@@ -1,0 +1,67 @@
+upstream http_demo {
+    server 172.16.40.212:80;
+    keepalive 128;
+}
+
+
+server {
+    root /var/www/html;
+    include "/etc/nginx/l1cache-proxy-pagespeed.conf";
+    include "/etc/nginx/proxy-not-cache.conf";
+    server_name root-demo.ihcm.vn demo00.ihcm.vn demo01.ihcm.vn demo02.ihcm.vn demo03.ihcm.vn demo04.ihcm.vn demo05.ihcm.vn demo06.ihcm.vn demo07.ihcm.vn demo08.ihcm.vn demo09.ihcm.vn demo10.ihcm.vn demo11.ihcm.vn demo12.ihcm.vn demo13.ihcm.vn demo14.ihcm.vn demo15.ihcm.vn demo16.ihcm.vn demo17.ihcm.vn demo18.ihcm.vn demo19.ihcm.vn demo20.ihcm.vn demo21.ihcm.vn demo22.ihcm.vn demo23.ihcm.vn demo24.ihcm.vn demo25.ihcm.vn demo26.ihcm.vn demo27.ihcm.vn demo28.ihcm.vn demo29.ihcm.vn demofree00.ihcm.vn demofree01.ihcm.vn demofree02.ihcm.vn demofree03.ihcm.vn demofree04.ihcm.vn demofree05.ihcm.vn demofree06.ihcm.vn demofree07.ihcm.vn demofree08.ihcm.vn demofree09.ihcm.vn demostd00.ihcm.vn demostd01.ihcm.vn demostd02.ihcm.vn demostd03.ihcm.vn demostd04.ihcm.vn demostd05.ihcm.vn demostd06.ihcm.vn demostd07.ihcm.vn demostd08.ihcm.vn demostd09.ihcm.vn demoent00.ihcm.vn demoent01.ihcm.vn demoent02.ihcm.vn demoent03.ihcm.vn demoent04.ihcm.vn demoent05.ihcm.vn demoent06.ihcm.vn demoent07.ihcm.vn demoent08.ihcm.vn demoent09.ihcm.vn;
+    listen unix:/tmp/l1cache.sock;
+    listen 127.0.0.1:8080;
+    testcookie off;
+    if (-f /etc/ddos){
+        testcookie on;
+    }
+    #access_log /var/log/nginx/l1cache-access.log main buffer=64k if=$logip;
+    access_log /var/log/nginx/l1cache.demo-access.log;
+    error_log  /var/log/nginx/l1cache.demo-error.log;
+    location ~ /\. { access_log off; log_not_found off; deny all; }
+
+   if ($trunc_arg = 1)
+   {
+     set $args "";
+     set $bypass_cache 0;
+   }
+   set $keycache $uri$args;
+
+#Tai nguyen da duoc toi uu se duoc luu trong cache 30 phut
+   location ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{20}\.[^.]+" {
+        include "/etc/nginx/l1cache-proxy.conf";
+        proxy_hide_header X-Powered-By;
+        proxy_cache_valid 200 301 302 30m;
+        proxy_pass http://http_demo;
+   }
+
+
+   location / {
+        proxy_hide_header X-Powered-By;
+        error_page 410 = @nocache;
+        error_page 411 = @microcache;
+        if ($micro_cache = 1) {
+            return 411;
+        }
+        if ($bypass_cache = 1) {
+            return 410;
+        }
+        proxy_cache_valid 200 301 302 30m;
+        include "/etc/nginx/l1cache-proxy.conf";
+        proxy_pass http://http_demo;
+   }
+   location @nocache {
+        proxy_hide_header X-Powered-By;
+        proxy_cache_bypass 1;
+        include "/etc/nginx/l1cache-proxy-nocache.conf";
+        proxy_pass http://http_demo;
+   }
+   location @microcache {
+        #Cac file dinh kem duoc cache cho tung session trong 60s
+        proxy_cache_valid 200 5m;
+        include "/etc/nginx/l1cache-proxy-microcache.conf";
+        proxy_pass http://http_demo;
+   }
+}
+
+

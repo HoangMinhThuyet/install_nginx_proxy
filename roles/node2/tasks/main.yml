@@ -29,7 +29,7 @@
     - waf-proxy-map.conf
     - waf-proxy.conf
     - waf.conf
-- name: create service start LB
+- name: create service start WAF
   command: "{{ item }}"
   with_items:
     - crudini --set /lib/systemd/system/waf.service Unit Description "The service start WAF"
@@ -43,7 +43,7 @@
     - crudini --set /lib/systemd/system/waf.service Service PrivateTmp true
     - crudini --set /lib/systemd/system/waf.service Install WantedBy multi-user.target
     - chmod 755 /lib/systemd/system/waf.service
-- name: create service start L1cache
+- name: create service start OPT
   command: "{{ item }}"
   with_items:
     - crudini --set /lib/systemd/system/opt.service Unit Description "The service start opt"

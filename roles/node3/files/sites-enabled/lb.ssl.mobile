@@ -1,0 +1,51 @@
+upstream http_mobile {
+    server 172.16.40.212:80;
+    keepalive 128;
+}
+
+server {
+    root /var/www/html;
+    include /etc/nginx/app.ssl.conf;
+    include /etc/nginx/ddos-protection.conf;
+    include /etc/nginx/com-protection.conf;
+    include /etc/nginx/proxy-not-cache.conf;
+    server_name mobile.ihcm.vn mobile-free.ihcm.vn mobile-std.ihcm.vn mobile-ent.ihcm.vn;
+    listen 172.20.20.227:443 ssl spdy http2;
+    if ($host !~* .(ihcm.vn)$){
+        return 444;
+    }
+    location = /aes.js {
+        gzip  on;
+        gzip_types      text/plain;
+        root /var/www/public_html;
+    }
+    #access_log /var/log/nginx/app.ssl.mobile-access.log main buffer=64k;
+    access_log /var/log/nginx/app.ssl.mobile-access.log main;
+    error_log  /var/log/nginx/app.ssl.mobile-error.log;
+
+    location ~ /\. { access_log off; log_not_found off; deny all; }
+
+#    if ($trunc_arg = 1)
+#    {
+#      set $args "";
+#    }
+    location ~ /\. { access_log off; log_not_found off; deny all; }
+
+    location / {
+#      error_page 410 = @nocache;
+#      if ($bypass_cache = 1) {
+#          return 410;
+#      }
+#      include /etc/nginx/lb-proxy.conf;
+#      proxy_pass http://http_mobile;
+#    }
+#    location @nocache {
+      limit_req zone=reqdynamicperip burst=100 nodelay;
+      limit_req zone=reqdynamicperref burst=100 nodelay;
+      limit_req zone=reqdynamicpersession burst=100 nodelay;
+      limit_req zone=reqdynamicnonesession burst=100 nodelay;
+      include /etc/nginx/lb-proxy.conf;
+      proxy_pass http://http_mobile;
+    }
+}
+

@@ -1,0 +1,136 @@
+- name: copy file
+  copy:
+    src: "{{ item }}"
+    dest: /etc/nginx/
+    owner: root
+    group: root
+    mode: preserve
+  with_items:
+    - sites-available
+    - sites-enabled
+    - app.ssl.conf
+    - client-size-protection.conf
+    - com-protection.conf
+    - ddos-protection.conf
+    - dhparams.pem
+    - ihcm.private.key
+    - ihcm.trustchain.crt
+    - ihcm.vn.chain.crt
+    - l1cache-proxy-microcache.conf
+    - l1cache-proxy-nocache.conf
+    - l1cache-proxy-pagespeed.conf
+    - l1cache-proxy.conf
+    - l1cache.conf
+    - lb-proxy.conf
+    - lb.conf
+    - mime.types
+    - ngxps-ev.conf
+    - ngxps-head.conf
+    - ngxps-pub.conf
+    - ngxps.conf
+    - proxy-not-cache.conf
+    - tcp-global-protection.conf
+    - tickets.key
+    - gzip.conf
+    - modsecurity.conf
+    - modsecurity_35_bad_robots.data
+    - modsecurity_35_scanners.data
+    - modsecurity_40_generic_attacks.data
+    - modsecurity_50_outbound.data
+    - modsecurity_50_outbound_malware.data
+    - naxsi_core.rules
+    - opt.conf
+    - pagespeed-id.conf
+    - pagespeed.conf
+    - pagespeed.conf.nowebp
+    - pagespeed.conf.old
+    - unicode.mapping
+    - waf-proxy-id.conf
+    - waf-proxy-map.conf
+    - waf-proxy.conf
+    - waf.conf
+- name: create service start LB
+  command: "{{ item }}"
+  with_items:
+    - crudini --set /lib/systemd/system/lb.service Unit Description "The service start LB"
+    - crudini --set /lib/systemd/system/lb.service Unit After "syslog.target network.target remote-fs.target nss-lookup.target"
+    - crudini --set /lib/systemd/system/lb.service Service Type forking
+    - crudini --set /lib/systemd/system/lb.service Service "#PIDFile /var/run/lb.pid"
+    - crudini --set /lib/systemd/system/lb.service Service ExecStartPre "/usr/sbin/lb -t -c /etc/nginx/lb.conf"
+    - crudini --set /lib/systemd/system/lb.service Service ExecStart "/usr/sbin/lb -c /etc/nginx/lb.conf"
+    - crudini --set /lib/systemd/system/lb.service Service ExecReload /bin/kill -s HUP $MAINPID
+    - crudini --set /lib/systemd/system/lb.service Service ExecStop "/bin/kill -s QUIT $MAINPID"
+    - crudini --set /lib/systemd/system/lb.service Service PrivateTmp true
+    - crudini --set /lib/systemd/system/lb.service Install WantedBy multi-user.target
+    - chmod 755 /lib/systemd/system/lb.service
+- name: create service start L1cache
+  command: "{{ item }}"
+  with_items:
+    - crudini --set /lib/systemd/system/l1cache.service Unit Description "The service start L1cache"
+    - crudini --set /lib/systemd/system/l1cache.service Unit After "syslog.target network.target remote-fs.target nss-lookup.target"
+    - crudini --set /lib/systemd/system/l1cache.service Service Type forking
+    - crudini --set /lib/systemd/system/l1cache.service Service PIDFile /var/run/l1cache.pid
+    - crudini --set /lib/systemd/system/l1cache.service Service ExecStartPre "/usr/sbin/l1cache -t -c /etc/nginx/l1cache.conf"
+    - crudini --set /lib/systemd/system/l1cache.service Service ExecStart "/usr/sbin/l1cache -c /etc/nginx/l1cache.conf"
+    - crudini --set /lib/systemd/system/l1cache.service Service ExecReload /bin/kill -s HUP $MAINPID
+    - crudini --set /lib/systemd/system/l1cache.service Service ExecStop "/bin/kill -s QUIT $MAINPID"
+    - crudini --set /lib/systemd/system/l1cache.service Service PrivateTmp true
+    - crudini --set /lib/systemd/system/l1cache.service Install WantedBy multi-user.target
+    - chmod 755 /lib/systemd/system/l1cache.service
+- name: create service start WAF
+  command: "{{ item }}"
+  with_items:
+    - crudini --set /lib/systemd/system/waf.service Unit Description "The service start WAF"
+    - crudini --set /lib/systemd/system/waf.service Unit After "syslog.target network.target remote-fs.target nss-lookup.target"
+    - crudini --set /lib/systemd/system/waf.service Service Type forking
+    - crudini --set /lib/systemd/system/waf.service Service PIDFile /run/waf.pid
+    - crudini --set /lib/systemd/system/waf.service Service ExecStartPre "/usr/sbin/waf -t -c /etc/nginx/waf.conf"
+    - crudini --set /lib/systemd/system/waf.service Service ExecStart "/usr/sbin/waf -c /etc/nginx/waf.conf"
+    - crudini --set /lib/systemd/system/waf.service Service ExecReload /bin/kill -s HUP $MAINPID
+    - crudini --set /lib/systemd/system/waf.service Service ExecStop "/bin/kill -s QUIT $MAINPID"
+    - crudini --set /lib/systemd/system/waf.service Service PrivateTmp true
+    - crudini --set /lib/systemd/system/waf.service Install WantedBy multi-user.target
+    - chmod 755 /lib/systemd/system/waf.service
+- name: create service start OPT
+  command: "{{ item }}"
+  with_items:
+    - crudini --set /lib/systemd/system/opt.service Unit Description "The service start opt"
+    - crudini --set /lib/systemd/system/opt.service Unit After "syslog.target network.target remote-fs.target nss-lookup.target"
+    - crudini --set /lib/systemd/system/opt.service Service Type forking
+    - crudini --set /lib/systemd/system/opt.service Service PIDFile /run/opt.pid
+    - crudini --set /lib/systemd/system/opt.service Service ExecStartPre "/usr/sbin/opt -t -c /etc/nginx/opt.conf"
+    - crudini --set /lib/systemd/system/opt.service Service ExecStart "/usr/sbin/opt -c /etc/nginx/opt.conf"
+    - crudini --set /lib/systemd/system/opt.service Service ExecReload /bin/kill -s HUP $MAINPID
+    - crudini --set /lib/systemd/system/opt.service Service ExecStop "/bin/kill -s QUIT $MAINPID"
+    - crudini --set /lib/systemd/system/opt.service Service PrivateTmp true
+    - crudini --set /lib/systemd/system/opt.service Install WantedBy multi-user.target
+    - chmod 755 /lib/systemd/system/opt.service
+- name: create forder nginx
+  file:
+    path: /var/log/nginx
+    state: directory
+    owner: root
+    group: root
+    recurse: yes
+    mode: "0755"
+- name: copy file "/usr/sbin/nginx" -> "/usr/sbin/lb"
+  shell: mv /usr/sbin/nginx /usr/sbin/lb; systemctl daemon-reload
+  notify:
+    - start lb
+    - restart lb
+- name: copy file  -> "/usr/sbin/l1cache"
+  shell: cp /usr/sbin/lb /usr/sbin/l1cache; systemctl daemon-reload
+  notify:
+    - start l1cache
+    - restart l1cache
+
+- name: copy file "/usr/sbin/nginx" -> "/usr/sbin/waf"
+  shell: cp /usr/sbin/lb /usr/sbin/waf; systemctl daemon-reload
+  notify:
+    - start waf
+    - restart waf
+- name: copy file  -> "/usr/sbin/l1cache"
+  shell: cp /usr/sbin/waf /usr/sbin/opt; systemctl daemon-reload
+  notify:
+    - start opt
+    - restart opt

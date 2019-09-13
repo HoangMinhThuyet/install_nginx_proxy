@@ -28,6 +28,7 @@
       - libatomic
       - libatomic-static
       - libatomic_ops-devel
+      - net-tools
     state: present
 - name: install hiredis and crudini
   command: yum install hiredis* crudini -y
@@ -51,8 +52,9 @@
     - ngx_cache_purge-2.3.tar.gz
     - ngx_devel_kit-master.zip
     - openssl-1.0.2s.tar.gz     
-    - set-misc-nginx-module-master.zip 
+    - set-misc-nginx-module-master.zip
     - 1.13.35.2-x64.tar.gz
+    - redis_nginx_adapter.tar
 - name: unarchive file
   unarchive:
     src: /root/{{ item }}
@@ -72,6 +74,7 @@
     - ngx_devel_kit-master.zip
     - openssl-1.0.2s.tar.gz     
     - set-misc-nginx-module-master.zip
+    - redis_nginx_adapter.tar
 - name: Install ModSecurity
   shell: sed -i '/AC_PROG_CC/a\AM_PROG_CC_C_O' configure.ac ; sed -i '1 i\AUTOMAKE_OPTIONS = subdir-objects' Makefile.am
   args:
@@ -95,7 +98,7 @@
   args:
     chdir: /root/nginx-1.15.12
 - name: Install redis_nginx_adapter
-  shell: cd /root/ ; git clone https://github.com/wandenberg/redis_nginx_adapter.git ; cd redis_nginx_adapter/ ; ./configure --with-nginx-dir=../nginx-1.15.12 --with-hiredis-dir=/opt --with-openssl-dir=/usr/local/opt/openssl ; make && make install
+  shell: cd /root/redis_nginx_adapter/ ; ./configure --with-nginx-dir=../nginx-1.15.12 --with-hiredis-dir=/opt --with-openssl-dir=/usr/local/opt/openssl ; make && make install
 - name: continue install nginx
   shell: cd /root/nginx-1.15.12 ; make && make install
 - name: add user nginx 

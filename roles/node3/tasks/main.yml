@@ -108,7 +108,7 @@
 - name: change ip 
   shell: "{{ item }}"
   with_items:
-    - sed -i 's/172.20.20.227/172.20.20.230/g' /etcnginx/sites-enabled/lb.ssl
+    - sed -i 's/172.20.20.227/172.20.20.230/g' /etc/nginx/sites-enabled/lb.ssl
     - sed -i 's/172.20.20.227/172.20.20.230/g' /etc/nginx/sites-enabled/lb.ssl.demo
     - sed -i 's/172.20.20.227/172.20.20.230/g' /etc/nginx/sites-enabled/lb.ssl.id
     - sed -i 's/172.20.20.227/172.20.20.230/g' /etc/nginx/sites-enabled/lb.ssl.mobile
@@ -116,7 +116,7 @@
     - sed -i 's/172.20.20.227/172.20.20.230/g' /etc/nginx/sites-enabled/ngxps
     - sed -i 's/172.20.20.227/172.20.20.230/g' /etc/nginx/sites-enabled/lb
     - sed -i 's/172.20.20.231/172.20.20.230/g' /etc/nginx/sites-enabled/waf
-    - name: create forder nginx
+- name: create forder nginx
   file:
     path: /var/log/nginx
     state: directory

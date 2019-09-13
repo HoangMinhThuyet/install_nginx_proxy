@@ -27,7 +27,7 @@ server {
 server {
   ModSecurityConfig modsecurity.conf;
   server_name *.ihcm.vn;
-  listen 172.20.20.231:80 backlog=65535;
+  listen 172.20.20.231:82 backlog=65535;
   root /var/www/html;
   include /etc/nginx/proxy-not-cache.conf;
   ModSecurityEnabled on;

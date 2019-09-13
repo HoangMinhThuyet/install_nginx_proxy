@@ -105,6 +105,17 @@
     - crudini --set /lib/systemd/system/opt.service Service PrivateTmp true
     - crudini --set /lib/systemd/system/opt.service Install WantedBy multi-user.target
     - chmod 755 /lib/systemd/system/opt.service
+- name: change ip 
+  shell: "{{ item }}"
+  with_items:
+    - sed -i 's/172.20.20.227/172.20.20.230/g' /etcnginx/sites-enabled/lb.ssl
+    - sed -i 's/172.20.20.227/172.20.20.230/g' /etc/nginx/sites-enabled/lb.ssl.demo
+    - sed -i 's/172.20.20.227/172.20.20.230/g' /etc/nginx/sites-enabled/lb.ssl.id
+    - sed -i 's/172.20.20.227/172.20.20.230/g' /etc/nginx/sites-enabled/lb.ssl.mobile
+    - sed -i 's/172.20.20.227/172.20.20.230/g' /etc/nginx/sites-enabled/lb.ssl.root
+    - sed -i 's/172.20.20.227/172.20.20.230/g' /etc/nginx/sites-enabled/ngxps
+    - sed -i 's/172.20.20.227/172.20.20.230/g' /etc/nginx/sites-enabled/lb
+    - sed -i 's/172.20.20.231/172.20.20.230/g' /etc/nginx/sites-enable/waf
 - name: create forder nginx
   file:
     path: /var/log/nginx

@@ -11,4 +11,7 @@
   remote_user: root
   roles:
     - node2
-
+- hosts: node3
+  remote_user: root
+  roles:
+    - node3
